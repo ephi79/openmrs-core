@@ -101,15 +101,19 @@ public class ObsServiceImpl extends BaseOpenmrsService implements ObsService {
 
 		//Should allow updating a voided Obs, it seems to be pointless to restrict it,
 		//otherwise operations like merge patients won't be possible when to moving voided obs
+		Obs returnObs = null;
 		if (obs.getObsId() == null || obs.getVoided()) {
-			return saveNewOrVoidedObs(obs,changeMessage);
+			returnObs = saveNewOrVoidedObs(obs,changeMessage);
 		} else if(!obs.isDirty()){
 			setPersonFromEncounter(obs);
-			return saveObsNotDirty(obs, changeMessage);
+			returnObs = saveObsNotDirty(obs, changeMessage);
 		} else {
 			setPersonFromEncounter(obs);
-			return saveExistingObs(obs,changeMessage);
+			returnObs = saveExistingObs(obs,changeMessage);
 		}
+		
+		Context.evictFromSession(returnObs);
+		return returnObs;
 	}
 
 	private void setPersonFromEncounter(Obs obs) {
